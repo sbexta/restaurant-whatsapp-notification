@@ -1,0 +1,25 @@
+# Backend (.NET)
+backend/**/bin/
+backend/**/obj/
+backend/**/*.user
+backend/.vs/
+
+# Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/next-env.d.ts
+
+# Environment / secrets
+*.env
+.env.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Claude Code local state
+.claude/
