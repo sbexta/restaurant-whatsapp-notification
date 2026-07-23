@@ -49,7 +49,7 @@ services:
       SERVER_URL: "http://${VM_HOST}:${EVOLUTION_PORT:-8080}"
       AUTHENTICATION_API_KEY: ${EVOLUTION_API_KEY}
       DATABASE_PROVIDER: postgresql
-      DATABASE_CONNECTION_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/evolution?schema=evolution_api"
+      DATABASE_CONNECTION_URI: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/evolution?schema=evolution_api&connect_timeout=30&pool_timeout=30"
       CACHE_REDIS_ENABLED: "false"
     volumes:
       - evolution_instances:/evolution/instances
