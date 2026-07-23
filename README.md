@@ -22,20 +22,31 @@ docker-compose.yml   PostgreSQL para desarrollo local
 
 - .NET 8 SDK
 - Node.js 18+
-- Docker (para PostgreSQL)
-- Una instancia de [n8n](https://n8n.io/) y de [Evolution API](https://doc.evolution-api.com/) (para el envío real de WhatsApp)
+- Docker (para PostgreSQL, Evolution API, Redis)
+- Una instancia de [n8n](https://n8n.io/) (self-hosted o cloud)
 
 ## Puesta en marcha
 
-### 1. Base de datos
+### 1. Variables de entorno
 
 ```bash
-docker compose up -d postgres
+cp .env.example .env
 ```
 
-Levanta PostgreSQL en `localhost:5432` (usuario/clave `postgres`, base `whatsapp_order_notification`).
+Define `EVOLUTION_API_KEY` (cualquier string secreto que tú elijas) — es la API key global que usará Evolution API.
 
-### 2. Backend
+### 2. Base de datos + Evolution API
+
+```bash
+docker compose up -d
+```
+
+Esto levanta:
+- **postgres** (`localhost:5432`) — base de datos de la aplicación (`whatsapp_order_notification`).
+- **evolution-postgres** + **evolution-redis** — dependencias internas de Evolution API.
+- **evolution-api** (`localhost:8080`) — servidor de Evolution API. Manager web en `http://localhost:8080/manager` (login con la `EVOLUTION_API_KEY` de tu `.env`).
+
+### 3. Backend
 
 ```bash
 cd backend/WhatsAppOrderNotification.Api
@@ -48,7 +59,7 @@ dotnet run --urls http://localhost:5199
   - `ConnectionStrings:DefaultConnection` — cadena de conexión a PostgreSQL.
   - `N8n:WebhookUrl` — URL del webhook de n8n que dispara la notificación de WhatsApp.
 
-### 3. Frontend
+### 4. Frontend
 
 ```bash
 cd frontend
@@ -59,28 +70,23 @@ npm run dev
 - App disponible en `http://localhost:3000`.
 - Variable de entorno en `.env.local`: `NEXT_PUBLIC_API_URL` (por defecto `http://localhost:5199`).
 
-### 4. n8n (automatización de WhatsApp)
+### 5. n8n (automatización de WhatsApp)
 
-El workflow **"Customer Ready Notification"** ya está creado en n8n con dos nodos:
+El workflow **"Customer Ready Notification"** está creado, configurado y **probado con envío real de WhatsApp**, con dos nodos:
 
-1. **Webhook** (`POST /webhook/customer-ready`) — recibe `{ "name": "...", "phone": "..." }` desde el backend. Ya probado y funcionando.
-2. **HTTP Request** → Evolution API — **pendiente de configurar** (ver sección siguiente).
+1. **Webhook** (`POST /webhook/customer-ready`) — recibe `{ "name": "...", "phone": "..." }` desde el backend.
+2. **HTTP Request** → `POST http://host.docker.internal:8080/message/sendText/{instancia}` con header `apikey` y body `{ "number": "...", "text": "..." }` — envía el mensaje vía Evolution API.
 
-## Pendiente: credenciales de Evolution API
+El workflow debe estar **activado** ("Publish"/Active) para que la URL de producción del webhook responda.
 
-El nodo HTTP Request del workflow de n8n todavía tiene valores placeholder:
+### 6. Conectar el número de WhatsApp en Evolution API
 
-- URL: `https://TU-SERVIDOR-EVOLUTION-API/message/sendText/TU-INSTANCIA`
-- Header `apikey`: `TU-EVOLUTION-API-KEY`
+1. Entra al Manager (`http://localhost:8080/manager`) y crea una instancia (canal **Baileys**).
+2. Haz clic en la instancia → **Get QR Code**.
+3. Escanea el QR con WhatsApp → Ajustes → Dispositivos vinculados → Vincular un dispositivo. El QR expira en segundos; si falla, genera uno nuevo.
+4. Cuando `connectionStatus` pase a `open` (visible en el dashboard de la instancia), el número queda conectado y listo para enviar mensajes.
 
-Para dejar el envío real de WhatsApp funcionando falta:
-
-1. Reemplazar la URL por la de tu servidor de Evolution API y el nombre de tu instancia.
-2. Reemplazar el valor del header `apikey` por tu API key real.
-3. Verificar el formato exacto del body esperado por tu versión de Evolution API (puede variar; el body actual usa `{ "number": "...", "textMessage": { "text": "..." } }`).
-4. **Activar** el workflow en n8n (toggle "Publish"/Active) para que la URL de producción del webhook quede escuchando.
-
-Hasta que esto se complete, el backend recibe un error (`502 Bad Gateway`) al intentar notificar y el cliente permanece en estado `Pendiente` — este comportamiento es intencional (no se marca como notificado si el envío falla).
+**Nota de red:** si n8n corre en un contenedor Docker distinto al de Evolution API (como en este proyecto), usa `http://host.docker.internal:8080` en la URL del nodo HTTP Request en vez de `localhost`, ya que ambos contenedores no comparten red por defecto.
 
 ## Flujo funcional
 
@@ -93,7 +99,8 @@ Hasta que esto se complete, el backend recibe un error (`502 Bad Gateway`) al in
 
 - CRUD completo de clientes (crear, listar, editar, eliminar) probado end-to-end vía UI.
 - Validaciones: nombre/teléfono/cédula obligatorios, cédula duplicada (tanto en creación como edición).
-- Flujo de notificación probado con un servidor mock simulando a n8n/Evolution API (éxito y fallo), confirmando que el estado solo cambia a `Listo` cuando la notificación se envía correctamente.
+- Flujo de notificación probado primero con un servidor mock simulando a n8n/Evolution API (éxito y fallo), confirmando que el estado solo cambia a `Listo` cuando la notificación se envía correctamente.
+- **Envío real de WhatsApp verificado end-to-end**: backend → webhook n8n → Evolution API → WhatsApp, con mensaje confirmado por WhatsApp (`SERVER_ACK`) y recibido en el dispositivo.
 - Persistencia verificada recargando la aplicación tras cada operación.
 
 ## Aprendizajes del proyecto
@@ -103,3 +110,5 @@ Hasta que esto se complete, el backend recibe un error (`502 Bad Gateway`) al in
 - Consumo de una API REST desde Next.js (App Router) con manejo de errores tipado.
 - Diseño de un webhook saliente desde el backend hacia n8n, y construcción de un workflow n8n con nodos Webhook + HTTP Request.
 - Reemplazo de diálogos nativos del navegador (`alert`/`confirm`) por UI propia para evitar bloqueos y mejorar la experiencia de usuario.
+- En n8n, un campo de tipo JSON con `{{ }}` debe estar en modo **Expression** (no "Fixed") para que las expresiones se evalúen en tiempo de ejecución — en modo "Fixed" el texto `{{ ... }}` se envía literal.
+- Al desplegar Evolution API y n8n en contenedores Docker distintos (redes separadas), hay que usar `host.docker.internal` en vez de `localhost` para que un contenedor alcance el puerto publicado por otro en el host.

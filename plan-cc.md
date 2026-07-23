@@ -115,9 +115,10 @@ Flujo: Backend → Webhook n8n → Evolution API → WhatsApp → Cliente recibe
 - Implementar `POST /customers/{id}/ready`.
 - Al invocarse: validar que el estado sea `Pendiente`, cambiar a `Listo`, y hacer POST al webhook de n8n con `{ name, phone }`.
 
-**Fase 4 — Automatización n8n + Evolution API** *(parcialmente completada)*
-- Crear workflow en n8n que reciba el webhook. ✅ Hecho y probado (`Webhook` → `HTTP Request`).
-- Conectar con Evolution API para enviar el mensaje de WhatsApp con la plantilla definida. ⏳ Pendiente: el nodo HTTP Request tiene URL y `apikey` en placeholder a la espera de las credenciales reales de Evolution API (ver [`README.md`](./README.md#pendiente-credenciales-de-evolution-api)).
+**Fase 4 — Automatización n8n + Evolution API** ✅ Completada
+- Crear workflow en n8n que reciba el webhook. Hecho y probado (`Webhook` → `HTTP Request`).
+- Evolution API desplegada vía Docker (`docker-compose.yml`: `evolution-api`, `evolution-postgres`, `evolution-redis`), instancia de WhatsApp conectada escaneando el QR desde el Manager.
+- Conectar con Evolution API para enviar el mensaje de WhatsApp con la plantilla definida. Hecho: nodo HTTP Request configurado con la URL real (`http://host.docker.internal:8080/message/sendText/{instancia}`), `apikey` real y body `{ number, text }`. Envío real de WhatsApp verificado end-to-end (mensaje confirmado con `SERVER_ACK`).
 
 **Fase 5 — Frontend**
 - Pantalla única: tabla de clientes (Nombre, Cédula, Teléfono, Estado, Acciones).
