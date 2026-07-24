@@ -16,14 +16,14 @@ export default function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
-        <p className="text-sm text-gray-800">{message}</p>
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="glass w-full max-w-sm rounded-2xl p-6">
+        <p className="text-sm text-[var(--foreground)]">{message}</p>
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            className="glass-icon-btn cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-[var(--foreground)]"
           >
             Cancelar
           </button>
@@ -31,7 +31,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={isBusy}
-            className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className="glass-btn-danger cursor-pointer rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed"
           >
             {isBusy ? "Eliminando..." : confirmLabel}
           </button>

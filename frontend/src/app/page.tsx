@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MessageCircle, Plus, X } from "lucide-react";
 import {
   ApiError,
   createCustomer,
@@ -13,6 +14,7 @@ import { Customer, CustomerFormValues } from "@/types/customer";
 import CustomerTable from "@/components/CustomerTable";
 import CustomerFormModal from "@/components/CustomerFormModal";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Home() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -89,38 +91,64 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
-        <button
-          onClick={openCreateForm}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Nuevo cliente
-        </button>
-      </div>
-
-      {actionError && (
-        <div className="mb-4 flex items-center justify-between rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <span>{actionError}</span>
-          <button onClick={() => setActionError(null)} className="font-medium hover:underline">
-            Cerrar
-          </button>
+    <div className="min-h-full">
+      <header className="glass-header sticky top-0 z-10">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <span className="glass-avatar flex h-10 w-10 items-center justify-center rounded-full">
+              <MessageCircle className="h-5 w-5 text-white" strokeWidth={2.25} aria-hidden />
+            </span>
+            <div>
+              <h1 className="font-heading text-lg font-normal leading-tight text-white">Clientes</h1>
+              <p className="text-xs text-white/75">Notificaciones de pedido por WhatsApp</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={openCreateForm}
+              className="glass-btn-brand flex cursor-pointer items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold sm:px-5"
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+              <span className="hidden sm:inline">Nuevo cliente</span>
+            </button>
+          </div>
         </div>
-      )}
+      </header>
 
-      {loading && <p className="text-sm text-gray-500">Cargando...</p>}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8">
+        {actionError && (
+          <div className="glass-alert mb-4 flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm">
+            <span>{actionError}</span>
+            <button
+              onClick={() => setActionError(null)}
+              aria-label="Cerrar mensaje de error"
+              className="glass-icon-btn cursor-pointer rounded-full p-1"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        )}
 
-      {!loading && !error && (
-        <CustomerTable
-          customers={customers}
-          onEdit={openEditForm}
-          onDelete={setCustomerToDelete}
-          onMarkReady={handleMarkReady}
-          pendingActionId={pendingActionId}
-        />
-      )}
+        {loading && (
+          <div className="glass flex items-center gap-3 rounded-xl px-4 py-4 text-sm text-[var(--muted-foreground)]">
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--brand-dark)] border-t-transparent" />
+            Cargando clientes...
+          </div>
+        )}
+
+        {error && <div className="glass-alert rounded-xl px-4 py-3 text-sm">{error}</div>}
+
+        {!loading && !error && (
+          <CustomerTable
+            customers={customers}
+            onEdit={openEditForm}
+            onDelete={setCustomerToDelete}
+            onMarkReady={handleMarkReady}
+            pendingActionId={pendingActionId}
+          />
+        )}
+      </main>
 
       {isFormOpen && (
         <CustomerFormModal
@@ -139,6 +167,6 @@ export default function Home() {
           onCancel={() => setCustomerToDelete(null)}
         />
       )}
-    </main>
+    </div>
   );
 }

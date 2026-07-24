@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { useEffect } from "react";
+import { X } from "lucide-react";
 import { Customer, CustomerFormValues } from "@/types/customer";
 
 interface CustomerFormModalProps {
@@ -40,36 +41,46 @@ export default function CustomerFormModal({ customer, onClose, onSubmit }: Custo
   });
 
   return (
-    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">
-          {customer ? "Editar cliente" : "Nuevo cliente"}
-        </h2>
+    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+      <div className="glass w-full max-w-md rounded-2xl p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-heading text-lg font-normal text-[var(--foreground)]">
+            {customer ? "Editar cliente" : "Nuevo cliente"}
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="glass-icon-btn cursor-pointer rounded-full p-1 text-[var(--muted-foreground)]"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
 
         <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Nombre</label>
+            <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">Nombre</label>
             <input
               {...register("name", { required: "El nombre es obligatorio" })}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="glass-input w-full rounded-lg px-3 py-2 text-sm text-[var(--foreground)] outline-none"
             />
             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Cédula</label>
+            <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">Cédula</label>
             <input
               {...register("document", { required: "La cédula es obligatoria" })}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="glass-input w-full rounded-lg px-3 py-2 text-sm text-[var(--foreground)] outline-none"
             />
             {errors.document && <p className="mt-1 text-sm text-red-600">{errors.document.message}</p>}
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Teléfono</label>
+            <label className="mb-1 block text-sm font-medium text-[var(--foreground)]">Teléfono</label>
             <input
               {...register("phone", { required: "El teléfono es obligatorio" })}
-              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              className="glass-input w-full rounded-lg px-3 py-2 text-sm text-[var(--foreground)] outline-none"
               placeholder="573101234567"
             />
             {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
@@ -81,14 +92,14 @@ export default function CustomerFormModal({ customer, onClose, onSubmit }: Custo
             <button
               type="button"
               onClick={onClose}
-              className="rounded px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              className="glass-icon-btn cursor-pointer rounded-full px-4 py-2 text-sm font-medium text-[var(--foreground)]"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="glass-btn-brand cursor-pointer rounded-full px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Guardando..." : "Guardar"}
             </button>

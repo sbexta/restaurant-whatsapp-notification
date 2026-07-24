@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Pencil, Trash2 } from "lucide-react";
 import { Customer } from "@/types/customer";
 
 interface CustomerTableProps {
@@ -10,6 +11,15 @@ interface CustomerTableProps {
   pendingActionId: number | null;
 }
 
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
 export default function CustomerTable({
   customers,
   onEdit,
@@ -18,65 +28,79 @@ export default function CustomerTable({
   pendingActionId,
 }: CustomerTableProps) {
   if (customers.length === 0) {
-    return <p className="py-8 text-center text-sm text-gray-500">No hay clientes registrados todavía.</p>;
+    return (
+      <div className="glass rounded-xl px-4 py-10 text-center text-sm text-[var(--muted-foreground)]">
+        No hay clientes registrados todavía.
+      </div>
+    );
   }
 
   return (
-    <table className="w-full border-collapse overflow-hidden rounded-lg bg-white text-sm shadow">
-      <thead>
-        <tr className="bg-gray-100 text-left text-gray-600">
-          <th className="px-4 py-3 font-medium">Nombre</th>
-          <th className="px-4 py-3 font-medium">Cédula</th>
-          <th className="px-4 py-3 font-medium">Teléfono</th>
-          <th className="px-4 py-3 font-medium">Estado</th>
-          <th className="px-4 py-3 font-medium">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {customers.map((customer) => (
-          <tr key={customer.id} className="border-t border-gray-100">
-            <td className="px-4 py-3 text-gray-900">{customer.name}</td>
-            <td className="px-4 py-3 text-gray-700">{customer.document}</td>
-            <td className="px-4 py-3 text-gray-700">{customer.phone}</td>
-            <td className="px-4 py-3">
-              <span
-                className={`rounded-full px-2 py-1 text-xs font-medium ${
-                  customer.status === "Listo"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-yellow-100 text-yellow-700"
-                }`}
+    <ul className="flex flex-col gap-3">
+      {customers.map((customer) => (
+        <li
+          key={customer.id}
+          className="glass-card flex flex-col gap-3 rounded-xl p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="glass-avatar flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white">
+              {initials(customer.name)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-heading text-sm font-normal text-[var(--foreground)]">
+                {customer.name}
+              </p>
+              <p className="truncate text-xs text-[var(--muted-foreground)]">
+                Cédula {customer.document} &middot; {customer.phone}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:shrink-0">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                customer.status === "Listo" ? "glass-pill-ready" : "glass-pill-pending"
+              }`}
+            >
+              {customer.status}
+            </span>
+
+            {customer.status === "Pendiente" && (
+              <button
+                onClick={() => onMarkReady(customer)}
+                disabled={pendingActionId === customer.id}
+                aria-label={`Marcar a ${customer.name} como listo`}
+                title="Marcar como listo"
+                className="glass-btn-brand flex h-9 w-9 cursor-pointer items-center justify-center rounded-full disabled:cursor-not-allowed"
               >
-                {customer.status}
-              </span>
-            </td>
-            <td className="px-4 py-3">
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => onEdit(customer)}
-                  className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => onDelete(customer)}
-                  className="rounded border border-red-300 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50"
-                >
-                  Eliminar
-                </button>
-                {customer.status === "Pendiente" && (
-                  <button
-                    onClick={() => onMarkReady(customer)}
-                    disabled={pendingActionId === customer.id}
-                    className="rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    {pendingActionId === customer.id ? "Enviando..." : "Marcar como listo"}
-                  </button>
+                {pendingActionId === customer.id ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden />
                 )}
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+              </button>
+            )}
+
+            <button
+              onClick={() => onEdit(customer)}
+              aria-label={`Editar a ${customer.name}`}
+              title="Editar"
+              className="glass-icon-btn flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-[var(--foreground)]"
+            >
+              <Pencil className="h-4 w-4" aria-hidden />
+            </button>
+
+            <button
+              onClick={() => onDelete(customer)}
+              aria-label={`Eliminar a ${customer.name}`}
+              title="Eliminar"
+              className="glass-icon-btn flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-red-700"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }
