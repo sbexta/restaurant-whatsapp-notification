@@ -21,6 +21,7 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=whatsapp_order_notification;Username=postgres;Password=${POSTGRES_PASSWORD}"
       N8n__WebhookUrl: "http://n8n:5678/webhook/customer-ready"
+      N8n__WebhookSecret: ${N8N_WEBHOOK_SECRET}
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
     depends_on:
       - postgres

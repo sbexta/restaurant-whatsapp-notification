@@ -24,9 +24,20 @@ public class N8nReadyNotificationClient : IReadyNotificationClient
             return false;
         }
 
+        var webhookSecret = _configuration["N8n:WebhookSecret"];
+
         try
         {
-            var response = await _httpClient.PostAsJsonAsync(webhookUrl, new { name, phone });
+            using var request = new HttpRequestMessage(HttpMethod.Post, webhookUrl)
+            {
+                Content = JsonContent.Create(new { name, phone })
+            };
+            if (!string.IsNullOrWhiteSpace(webhookSecret))
+            {
+                request.Headers.Add("X-Webhook-Secret", webhookSecret);
+            }
+
+            var response = await _httpClient.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("El webhook de n8n respondió con {StatusCode}.", response.StatusCode);
